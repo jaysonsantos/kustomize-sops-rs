@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: ingress-test
+    annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-production
+        ingress.kubernetes.io/force-ssl-redirect: "true"
+        kubernetes.io/ingress.class: contour
+        kubernetes.io/tls-acme: "true"
+spec:
+    tls:
+    -   secretName: ingress-tls
+        hosts:
+        - ENC[AES256_GCM,data:8MsPq0Umf6TFosCiq0TJ+g==,iv:c7m0c3AsncLkhZo/c6ZAvB9pdbVylz5RkJWuz+R04MQ=,tag:znZthG+ZNRrhG1+UYaGRkg==,type:str]
+    rules:
+    -   host: ENC[AES256_GCM,data:Gnx1mp+qzEF715zNNYYoDw==,iv:91zIHxZ+uLNrkLrA2xpkruDd7z/NheI6N7zNJHDpsz0=,tag:mVja7x3GsWRTU3e+YQoPlg==,type:str]
+        http:
+            paths:
+            -   path: /
+                pathType: Prefix
+                backend:
+                    service:
+                        name: ingress-test
+                        port:
+                            number: 80
+sops:
+    kms: []
+    gcp_kms: []
+    azure_kv: []
+    hc_vault: []
+    lastmodified: '2020-11-17T10:16:26Z'
+    mac: ENC[AES256_GCM,data:y6/H2dNfnztQaYcSVNTvHDV/qGiXMt8aVBCE1UV6QEDljfSb4v7hEMZi1FwozwM2ZALjqzWCNs8WbzPANLuQ4HFrwgYC4zXYEHX4R7/ge6foFjj2AkdzkNzh4mELbeGpKhl4s03ghnWyqMSOvG0SELhnhR5G+UAx+xBhwjwSqOA=,iv:KCms5N284jU7FrsPVnO1Le7qLNwpuBUluiZ4vNsbz78=,tag:MHQE+JTB0Qo/1DT4RIWXTg==,type:str]
+    pgp:
+    -   created_at: '2020-11-17T10:11:43Z'
+        enc: |
+            -----BEGIN PGP MESSAGE-----
+
+            hQGMAz4C2gJ0UQlQAQwArxSXveZsvn5mmtRSVmopf218GnkyuoPA1FiCJL8CbPVR
+            zuOsJuQOqUj3qH1OgE1A+4dX10+Axpdf7Agv8PWEFjrfwHN2YFYqVZt256iAKFkP
+            sAR5HxE5iT2GNvvSKlWLCu6a3yywKkxyQ+Sh6bP67ASQn0nnsSV8qf4j7Xy41QYY
+            SwOkhUnfCmwn/xUtkotKJy/4wdKJNegGHrnm4Jhq8kWN8f3H9RcKuswqaoAqDQVs
+            bldTFm8Hmgm2wD9kUlkhT+QROjSPOqZWMXjdJPXS26uqJxRUis0EwX7lo9j2Wh0+
+            x2UfcvXh39baG2ijmJkXkDiuUMq9DBfhAcKqkliYbxHa0mQ/KyNu/WfwqNc0t++Y
+            QejChfg9HOavOXNQ+bXwuR8ma8H3+EBGtcD2tBFoOGu9zkSwGqh7yES0CoJeeoDK
+            wPUusHcRzgUooZQBjJxa69KV1yPU6bkTOVP7V3PdoTvOcFhoyHcHbpyL4T465an4
+            SNPJVwBarYPni9FDsHJ20l4BrGp6tMqs49TD9NxxhHWENbB1gqAq1IX17AElTbFr
+            ZtrNL90WYkmH6U2HwY9mGYB7eQ+2ca4guxdYLy3/VC77oFG28TC+6lCwKKjBatSZ
+            8NTaIQCwDg4lgiCIGnkt
+            =QLG0
+            -----END PGP MESSAGE-----
+        fp: EBC846D0169D43A96ABA1C31AD471BDF8E8A0484
+    encrypted_regex: ^(host|hosts)$
+    version: 3.6.1
