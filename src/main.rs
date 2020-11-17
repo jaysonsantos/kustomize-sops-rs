@@ -13,12 +13,12 @@ use color_eyre::{
     Result,
 };
 use dirs::home_dir;
-use serde_yaml::{from_reader, to_string};
-
 use kustomize_sops::{
-    decrypt_file, generate_data_field, generate_output_map, Arguments, Input, Kind, SubCommand,
-    API_VERSION, CONFIG_MAP_OUTPUT, SECRET_OUTPUT, XDG_CONFIG_HOME,
+    cli::Arguments, cli::SubCommand, decryption::decrypt_file, maps::generate_data_field,
+    maps::generate_output_map, types::Input, types::Kind, API_VERSION, CONFIG_MAP_OUTPUT,
+    SECRET_OUTPUT, XDG_CONFIG_HOME,
 };
+use serde_yaml::{from_reader, to_string};
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -27,9 +27,9 @@ fn main() -> Result<()> {
         let input: Input = from_reader(File::open(yaml_file).unwrap()).unwrap();
 
         return match input.base.kind {
-            kustomize_sops::Kind::SecretGenerator => process_map(SECRET_OUTPUT, &input),
-            kustomize_sops::Kind::ConfigMapGenerator => process_map(CONFIG_MAP_OUTPUT, &input),
-            kustomize_sops::Kind::SimpleDecrypt => process_simple_decrypt(&input),
+            Kind::SecretGenerator => process_map(SECRET_OUTPUT, &input),
+            Kind::ConfigMapGenerator => process_map(CONFIG_MAP_OUTPUT, &input),
+            Kind::SimpleDecrypt => process_simple_decrypt(&input),
         };
     }
     match arguments.subcommand {
