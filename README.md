@@ -63,5 +63,5 @@ sops -p EBC846D0169D43A96ABA1C31AD471BDF8E8A0484 \
      /dev/stdin > encrypted.yaml
 ```
 
-After this you could just run `kustomize build folder` and it should generate your final yaml.
+After this you could just run `kustomize build --enable_alpha_plugins folder` and it should generate your final yaml.
 The kind `SimpleDecrypt` will just decrypt the file and pass it along, so it has to be a valid kubernetes object as you will probably apply it.
