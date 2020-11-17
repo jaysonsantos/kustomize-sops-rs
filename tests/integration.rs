@@ -34,29 +34,6 @@ fn install() -> Result<()> {
         .output()?;
 
     check_output_status(&output)?;
-
-    // for (a, b) in &[
-    //     ("secret_generator", "SecretGenerator"),
-    //     ("config_map_generator", "ConfigMapGenerator"),
-    //     ("simple_decrypt", "SimpleDecrypt"),
-    // ] {
-    //     let origin = debug_directory.join(a);
-    //     let destination_directory = debug_directory.join(API_VERSION).join(b.to_lowercase());
-    //     fs::create_dir_all(&destination_directory).wrap_err_with(|| {
-    //         format!(
-    //             "failed to create directory {}",
-    //             destination_directory.to_string_lossy()
-    //         )
-    //     })?;
-    //     let destination_file = destination_directory.join(b);
-    //     fs::copy(&origin, &destination_file).wrap_err_with(|| {
-    //         format!(
-    //             "failed to copy '{}' to '{}'",
-    //             origin.to_string_lossy(),
-    //             destination_file.to_string_lossy()
-    //         )
-    //     })?;
-    // }
     Ok(())
 }
 
