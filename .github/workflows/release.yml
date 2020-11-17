@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  BINARY_NAME: kustomize-sops
+
+jobs:
+  build_release:
+    name: build_release
+    runs-on: ${{ matrix.image }}
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            image: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: linux
+            image: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+          - os: macos
+            image: macos-latest
+            target: x86_64-apple-darwin
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install linux
+        if: ${{ matrix.os == 'linux' }}
+        run: |
+          set -ex
+          sudo apt install musl-tools
+          rustup target add ${{ matrix.target }}
+          cargo install cross
+
+      - name: Build linux
+        if: ${{ matrix.os == 'linux' }}
+        run: cross build --release --target=${{ matrix.target }} --verbose
+
+      - name: Build macos
+        if: ${{ matrix.os == 'macos' }}
+        run: cargo build --release --target=${{ matrix.target }} --verbose
+
+      - name: Prepare
+        run: |
+          final_binary=${{ env.BINARY_NAME }}-${{ matrix.target }}
+          mv target/${{ matrix.target }}/release/${{ env.BINARY_NAME }} $final_binary
+          ls
+          file $final_binary
+          gzip -f9 $final_binary
+
+      - name: Archive binary artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          if-no-files-found: warn
+          path: |
+            *.gz
+
+  create_release:
+    name: Create Release
+    needs: build_release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    steps:
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  upload_release_artifacts:
+    name: Upload Release Artifacts
+    needs: create_release
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+          - target: aarch64-unknown-linux-musl
+          - target: x86_64-apple-darwin
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.output.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./binaries/${{ env.BINARY_NAME }}-${{ matrix.target }}.gz
+          asset_name: ${{ env.BINARY_NAME }}-${{ matrix.target }}.gz
+          asset_content_type: application/gzip

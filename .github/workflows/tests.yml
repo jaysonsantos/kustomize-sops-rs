@@ -1,20 +1,49 @@
-name: Rust
+name: Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    name: test
+    runs-on: ${{ matrix.image }}
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            image: ubuntu-latest
+          - os: macos
+            image: macos-latest
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v2
+      - name: Install linux
+        if: ${{ matrix.os == 'linux' }}
+        run: |
+          set -ex
+          sudo apt install gpg
+          wget https://github.com/mozilla/sops/releases/download/v3.6.1/sops_3.6.1_amd64.deb
+          sudo dpkg -i sops*
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin
+
+      - name: Install macos
+        if: ${{ matrix.os == 'macos' }}
+        run: |
+          set -ex
+          brew install gpg sops kustomize
+
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
+      - name: Run clippy
+        run: cargo clippy --verbose
+      - name: Run rustfmt
+        run: cargo fmt -- --check
