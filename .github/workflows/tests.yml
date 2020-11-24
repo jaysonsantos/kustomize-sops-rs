@@ -20,6 +20,8 @@ jobs:
             image: ubuntu-latest
           - os: macos
             image: macos-latest
+          - os: windows
+            image: windows-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -38,6 +40,19 @@ jobs:
         run: |
           set -ex
           brew install gpg sops kustomize
+
+      # Chocolatey times out, so scoop it is
+      - name: Install windows
+        if: ${{ matrix.os == 'windows' }}
+        run: |
+          Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+          scoop install gnupg sops kustomize
+          echo "C:\Users\runneradmin\scoop\shims" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Check for kustomize
+        if: ${{ matrix.os == 'windows' }}
+        run: |
+          echo $env:PATH
+          get-command kustomize
 
       - name: Build
         run: cargo build --verbose

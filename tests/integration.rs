@@ -17,6 +17,18 @@ fn setup_tests() {
 
 fn configure_gpg() -> Result<()> {
     let output = Command::new("gpg")
+        .arg("--list-keys")
+        .stderr(Stdio::piped())
+        .stdout(Stdio::piped())
+        .output()
+        .wrap_err("failed to run gpg")?;
+
+    check_output_status(&output)?;
+    if String::from_utf8_lossy(&output.stdout).contains("EBC846D0169D43A96ABA1C31AD471BDF8E8A0484")
+    {
+        return Ok(());
+    }
+    let output = Command::new("gpg")
         .args(&["--import", "tests/kustomization/private.key"])
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
@@ -59,6 +71,7 @@ fn run_with_kustomize() {
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()
+        .wrap_err("failed to execute kustomize")
         .unwrap();
 
     let stdout = String::from_utf8_lossy(&output.stdout);

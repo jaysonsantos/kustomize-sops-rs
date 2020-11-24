@@ -1,24 +1,18 @@
 use std::{
-    env::{args, var},
-    fs::{canonicalize, create_dir_all, File},
+    fs::File,
     io::{stdout, Write},
-    os::unix::fs::symlink,
-    path::PathBuf,
     process::exit,
 };
 
 use clap::Clap;
-use color_eyre::{
-    eyre::{eyre, Context},
-    Result,
-};
-use dirs::home_dir;
-use kustomize_sops::{
-    cli::Arguments, cli::SubCommand, decryption::decrypt_file, maps::generate_data_field,
-    maps::generate_output_map, types::Input, types::Kind, API_VERSION, CONFIG_MAP_OUTPUT,
-    SECRET_OUTPUT, XDG_CONFIG_HOME,
-};
+use color_eyre::Result;
 use serde_yaml::{from_reader, to_string};
+
+use kustomize_sops::{
+    cli::Arguments, cli::SubCommand, decryption::decrypt_file, installer,
+    maps::generate_data_field, maps::generate_output_map, types::Input, types::Kind,
+    CONFIG_MAP_OUTPUT, SECRET_OUTPUT,
+};
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -33,7 +27,7 @@ fn main() -> Result<()> {
         };
     }
     match arguments.subcommand {
-        Some(SubCommand::Install) => return install(),
+        Some(SubCommand::Install) => return installer::install(),
         None => {
             eprintln!("The yaml file is required if no command is set");
             exit(1);
@@ -59,47 +53,5 @@ fn process_simple_decrypt(input: &Input) -> Result<()> {
         output.write_all(b"\n---\n")?;
     }
 
-    Ok(())
-}
-
-fn install() -> Result<()> {
-    let home = home_dir().ok_or_else(|| eyre!("Failed to determine home director"))?;
-    let install_directory = var(XDG_CONFIG_HOME)
-        .wrap_err("failed to get the install directory")
-        .map(|config| PathBuf::from(config))
-        .unwrap_or_else(|_| home.join(".config"))
-        .join("kustomize")
-        .join("plugin")
-        .join(API_VERSION);
-
-    let source = PathBuf::from(args().next().unwrap());
-    let source =
-        canonicalize(&source).wrap_err("failed to find the absolute path of the current binary")?;
-
-    let kinds = [
-        Kind::ConfigMapGenerator,
-        Kind::SecretGenerator,
-        Kind::SimpleDecrypt,
-    ];
-
-    for kind in &kinds {
-        let kind = format!("{:?}", kind);
-        let destination_folder = install_directory.join(&kind.to_lowercase());
-        create_dir_all(&destination_folder).wrap_err_with(|| {
-            format!(
-                "failed to create directory {}",
-                &destination_folder.to_string_lossy()
-            )
-        })?;
-        let destination = destination_folder.join(&kind);
-        println!(
-            "Linking kustomize-sops-rs to {}",
-            &destination.to_string_lossy()
-        );
-        if !destination.exists() {
-            // XXX: To implement on windows this needs to change
-            symlink(&source, destination).wrap_err("failed to create link")?;
-        }
-    }
     Ok(())
 }
