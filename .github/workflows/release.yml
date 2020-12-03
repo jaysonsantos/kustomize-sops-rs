@@ -27,6 +27,9 @@ jobs:
           - os: macos
             image: macos-latest
             target: x86_64-apple-darwin
+          - os: windows
+            image: windows-latest
+            target: x86_64-pc-windows-msvc
 
     steps:
       - uses: actions/checkout@v2
@@ -42,17 +45,28 @@ jobs:
         if: ${{ matrix.os == 'linux' }}
         run: cross build --release --target=${{ matrix.target }} --verbose
 
-      - name: Build macos
-        if: ${{ matrix.os == 'macos' }}
+      - name: Build != linux
+        if: ${{ matrix.os != 'linux' }}
         run: cargo build --release --target=${{ matrix.target }} --verbose
 
       - name: Prepare
+        shell: bash
         run: |
-          final_binary=${{ env.BINARY_NAME }}-${{ matrix.target }}
-          mv target/${{ matrix.target }}/release/${{ env.BINARY_NAME }} $final_binary
+          compress() {
+            if [[ "${{ matrix.os }}" = "windows" ]]; then
+              7z a $(echo $1 | sed 's/\.exe$//').zip $1
+            else
+              gzip -f9 $1
+            fi
+          }
+          if [[ "${{ matrix.os }}" = "windows" ]]; then
+            suffix=.exe
+          fi
+          final_binary=${{ env.BINARY_NAME }}-${{ matrix.target }}${suffix}
+          mv target/${{ matrix.target }}/release/${{ env.BINARY_NAME }}${suffix} $final_binary
           ls
           file $final_binary
-          gzip -f9 $final_binary
+          compress $final_binary
 
       - name: Archive binary artifacts
         uses: actions/upload-artifact@v2
@@ -61,6 +75,7 @@ jobs:
           if-no-files-found: warn
           path: |
             *.gz
+            *.zip
 
   create_release:
     name: Create Release
@@ -90,8 +105,20 @@ jobs:
       matrix:
         include:
           - target: x86_64-unknown-linux-musl
+            content_type: application/gzip
+            extension: gz
           - target: aarch64-unknown-linux-musl
+            content_type: application/gzip
+            extension: gz
           - target: x86_64-apple-darwin
+            content_type: application/gzip
+            extension: gz
+          - target: x86_64-apple-darwin
+            content_type: application/gzip
+            extension: gz
+          - target: x86_64-pc-windows-msvc
+            content_type: application/zip
+            extension: zip
     steps:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v2
@@ -103,6 +130,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./binaries/${{ env.BINARY_NAME }}-${{ matrix.target }}.gz
-          asset_name: ${{ env.BINARY_NAME }}-${{ matrix.target }}.gz
-          asset_content_type: application/gzip
+          asset_path: ./binaries/${{ env.BINARY_NAME }}-${{ matrix.target }}.${{ matrix.extension }}
+          asset_name: ${{ env.BINARY_NAME }}-${{ matrix.target }}.${{ matrix.extension }}
+          asset_content_type: ${{ matrix.content_type }}

@@ -1,5 +1,6 @@
 pub mod cli;
 pub mod decryption;
+pub mod installer;
 pub mod maps;
 pub mod types;
 
