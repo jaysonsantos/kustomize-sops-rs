@@ -55,11 +55,11 @@ fn run_with_kustomize() {
     let debug_directory = current_dir().unwrap().join("target").join("debug");
     let output = Command::new("kustomize")
         .env(XDG_CONFIG_HOME, &*debug_directory.to_string_lossy())
-        .args(&["build", "--enable_alpha_plugins", "tests/kustomization"])
+        .args(&["build", "--enable-alpha-plugins", "tests/kustomization"])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .output()
-        .unwrap();
+        .expect("failed to run customize");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
