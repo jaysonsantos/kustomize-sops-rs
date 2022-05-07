@@ -27,6 +27,9 @@ jobs:
           - os: macos
             image: macos-latest
             target: x86_64-apple-darwin
+          - os: macos
+            image: macos-latest
+            target: aarch64-apple-darwin
 
     steps:
       - uses: actions/checkout@v2
@@ -41,6 +44,11 @@ jobs:
       - name: Build linux
         if: ${{ matrix.os == 'linux' }}
         run: cross build --release --target=${{ matrix.target }} --verbose
+
+      - name: Install macos
+        if: ${{ matrix.os == 'macos' }}
+        run: |
+          rustup target add ${{ matrix.target }}
 
       - name: Build macos
         if: ${{ matrix.os == 'macos' }}
