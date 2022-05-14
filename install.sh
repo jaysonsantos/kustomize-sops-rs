@@ -10,7 +10,7 @@ function get_binary_name {
     local family
     local libc
 
-    arch=$(uname -m)
+    arch=$(uname -m | sed 's/arm64/aarch64/')
     os=$(uname -s | tr '[:upper:]' '[:lower:]')
 
     if [ "$os" = "linux" ]; then
