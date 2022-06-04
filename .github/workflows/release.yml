@@ -103,7 +103,7 @@ jobs:
           - target: aarch64-apple-darwin
     steps:
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - name: Upload Release Asset
         id: upload-release-asset
