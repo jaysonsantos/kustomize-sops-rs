@@ -28,7 +28,7 @@ function download_binary {
     local download_url
 
     name="$1"
-    download_url=$(curl "$PROJECT_RELEASE_URL" | grep -o "https://.*/${name}")
+    download_url=$(curl "$PROJECT_RELEASE_URL" | grep -o "https://.*/${name}" | head -n 1)
 
     echo "Downloading binary $download_url"
     curl -Ls "$download_url" -o "$name"
