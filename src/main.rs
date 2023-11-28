@@ -7,7 +7,7 @@ use std::{
     process::exit,
 };
 
-use clap::Clap;
+use clap::Parser;
 use color_eyre::{
     eyre::{eyre, Context},
     Result,
