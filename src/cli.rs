@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 
-use clap::Clap;
+use clap::Parser;
 
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 pub enum SubCommand {
     Install,
 }
-#[derive(Debug, Clap)]
+#[derive(Debug, Parser)]
 pub struct Arguments {
     #[clap(subcommand)]
     pub subcommand: Option<SubCommand>,
