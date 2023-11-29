@@ -63,7 +63,7 @@ jobs:
           gzip -f9 $final_binary
 
       - name: Archive binary artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: binaries
           if-no-files-found: warn
