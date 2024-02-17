@@ -63,7 +63,7 @@ jobs:
           gzip -f9 $final_binary
 
       - name: Archive binary artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: binaries
           if-no-files-found: warn
@@ -103,7 +103,7 @@ jobs:
           - target: aarch64-apple-darwin
     steps:
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
 
       - name: Upload Release Asset
         id: upload-release-asset
