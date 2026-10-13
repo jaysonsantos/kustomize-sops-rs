@@ -50,7 +50,9 @@ pub fn generate_output_map(
     match annotations {
         Metadata::String(_) => panic!("{} shoult not be a string at this point", ANNOTATIONS_KEY),
         Metadata::HashMap(h) => {
-            h.insert(ANNOTATION_NEEDS_HASH.into(), "true".into());
+            if !h.contains_key(ANNOTATION_NEEDS_HASH) {
+                h.insert(ANNOTATION_NEEDS_HASH.into(), "true".into());
+            }
         }
     }
 
